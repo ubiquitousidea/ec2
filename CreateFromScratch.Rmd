@@ -60,7 +60,7 @@ Now you are ready to go.
 
 6. After selecting the correct security group for your instance, click the blue "Launch" button in the lower right corner of the page. If you already created a key pair, choose the "Choose an existing key pair" option. If you haven't, choose create a public/privite key pair option. Doing this will allow you to download the private key which should be kept in your `~/.ssh` directory on Linux / Mac OS X systems.  Next, click `Launch Instances`! After this step, there will be links that direct you to areas of the dashboard where you can set up billing alerts or monitor the status of your instance. 
 
-7. Find the public IP address of your instance on the Instances section of the EC2 dashboard. In the table of instances, IP will be listed under a column with the name `IPv4 Public IP`. This is the public address of the virtual machine you just created. Your user id on this machine will be `ubuntu`.
+7. Find the public IP address of your instance on the Instances section of the EC2 dashboard. In the table of instances, IP will be listed under a column with the name `IPv4 Public IP`. This is the public address of the virtual machine you just created. Your user id on this machine will be `ubuntu`. Note: this IP address will change each time the instance is started.
 
 7. Optional step: configure an alias for the ec2 host. Doing this will make ssh and scp commands simpler to use.  Here let's assume the IP address is 127.0.0.1. Create or edit the file '~/.ssh/config'. To add an alias named $ec2$, add an entry to this file like:
 
@@ -79,14 +79,18 @@ it indicates the initialization is complete.
 9. Log into the instance using ssh (secure shell) command.
 On your local machine (Mac OS X or Linux),
 ensure that your private key file `jaykey.pem` into the hidden ssh folder `~/.ssh/`. If you lost the key file, you will need to terminate the instance and start over. The private key file permission must give access to your user id only. Private key file permissions should be set to 400 (user execute, hidden to all others). To ensure this configuration, execute: `chmod 400 jaykey.pem`. The two trailing zeros in `400` signify that the key is not accessible to the group or the world. Using the IP address of the instance, user `ubuntu`, and private key file `jaykey.pem`, execute the command:
-    
-    `ssh -i ~/.ssh/jaykey.pem ubuntu@54.164.61.92`
+
+```{r eval=FALSE}
+ssh -i ~/.ssh/jaykey.pem ubuntu@54.164.61.92
+```
 
 If you've set up the ssh config file specifying alias name `ec2`, the command will be:
-    
-    `ssh ec2`
 
-Your OS may ask you if you want to allow the remote machine to be added to a trusted hosts list. To allow this, type `yes`.
+```{r eval=FALSE}
+ssh ec2
+```
+
+Your OS may ask you if you are sure you want to connect to the remote machine at hte IP address specified. To allow this, type `yes`.
 
 Windows?  You'll need a Windows SSH/SFTP client.  Check on
 [Yale's software page (link)](http://software.yale.edu/).  You'll need to
