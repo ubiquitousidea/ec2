@@ -2,11 +2,12 @@
 ##
 ## InstallR.sh for use on Amazon EC2
 ##
-## - Jay Emerson and Susan Wang, originally May 2013
+## - Jay Emerson, Susan Wang, Dan Snyder, originally May 2013
 ## - Added "doextras" for Apache, Rserve/FastRWeb, Shiny server (JE June 2013)
 ## - Revised for new EC2 and software (JE August 2014)
 ## - Revised for new EC2 (FastRWeb and rserve commented out, JE April 2016)
 ## - Changes required for shiny installation (JE April 2016)
+## - MySQL installation (DS April 2018)
 ##
 ## -------------------------
 ## To log in the first time:
@@ -29,7 +30,7 @@
 debsource='deb http://cran.case.edu/bin/linux/ubuntu xenial/'
 #fastrweb='/usr/local/lib/R/site-library/FastRWeb'
 doextras=1           # 0 if you don't want apache, LaTeX, Rserve/FastRWeb, shiny
-
+domysql=0            # indicate mysql installation
 ## Choose the R version here:
 
 #rversion='2.15.3-1precise0precise1'
@@ -113,6 +114,10 @@ if [ $doextras = 1 ] ; then
   # No longer needed:
   #start shiny-server
 
+fi
+
+if [ $domysql = 1 ] ; then
+  apt-get install mysql-server
 fi
 
 mkdir /mnt/test
