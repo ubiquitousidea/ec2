@@ -1,7 +1,7 @@
 ---
 title: "R on Amazon EC2"
-author: "Jay Emerson and Susan Wang"
-date: "2/28/2017"
+author: "Jay Emerson, Susan Wang, and Dan Snyder"
+date: "4/17/2018"
 output: pdf_document
 ---
 
@@ -39,49 +39,82 @@ region is appropriate (I used something in the Eastern USA).  Start here:
 [http://aws.amazon.com/console/](http://aws.amazon.com/console/).
 
 2. Create a security group. From the `EC2 Dashboard` choose `Security Groups` under
-`Network and Security`.  I added a group with a VPC, and added
-rules for inbound traffic.  Make the
-obvious choices (SSH and HTTP on ports 22 and 80).  If you will be using
-Shiny, also open up port 3838 and (possibly) 10187 for default use
-of parallel programming tools (see below).
+`Network and Security`.  I added a group with a VPC, and added rules for 
+inbound traffic. Make the obvious choices (SSH and HTTP on ports 22 and 80).  
+If you will be using Shiny, also open up port 3838 and (possibly) 10187 for 
+default use of parallel programming tools (see below).
 
 3. From the `EC2 Dashboard` under `Instances` choose `Launch Instance`.
-My account is in the US East (N. Virginia) region. This will begin the process of creating the virtual machine you will log into.
+My account is in the US East (N. Virginia) region. This will begin the 
+process of creating the virtual machine you will log into.
 
-4. Select the AMI (Amazon machine image) you would like to launch. I selected `Ubuntu Server 16.04 LTS` with the 64-bit version.
+4. Select the AMI (Amazon machine image) you would like to launch. I 
+selected `Ubuntu Server 16.04 LTS` with the 64-bit version.
 This is eligible for the free tier model.  It is bare-bones; choose
 something bigger if you need it.
 
 5. I'll create one (1) instance of the free tier eligible `T2 Micro` instance
 type.  Don't press the blue `Review and Launch` button yet... be careful here.
-I then chose `Next: Configure Instance Details`.  Then basically skip steps 3-5.
-In `Step 6` you should select your security group you created earlier.
-Now you are ready to go.
+Then choose `Next: Configure Instance Details`. In `Step 3: Configure Instance` 
+set `Auto-assign Public IP` to Disable. This will allow you to assign an Elastic 
+IP address after launch. In `Step 6: Configure Security Group` you should select 
+the security group you created earlier. Now you are ready to go.
 
-6. After selecting the correct security group for your instance, click the blue "Launch" button in the lower right corner of the page. If you already created a key pair, choose the "Choose an existing key pair" option. If you haven't, choose create a public/privite key pair option. Doing this will allow you to download the private key which should be kept in your `~/.ssh` directory on Linux / Mac OS X systems.  Next, click `Launch Instances`! After this step, there will be links that direct you to areas of the dashboard where you can set up billing alerts or monitor the status of your instance. 
+6. After selecting the correct security group for your instance, click the blue 
+"Launch" button in the lower right corner of the page. If you haven't created a 
+key pair yet, choose create a public/privite key pair option. These are the keys 
+to the server. If you lose them, you'll be locked out. Download the key file 
+and keep it in your `~/.ssh` directory (on Linux / Mac OS X systems). If you already 
+created a key pair, select the "Choose an existing key pair" option. Next, click 
+`Launch Instances`! After this step, there will be links that direct you to areas 
+of the dashboard where you can set up billing alerts or monitor the status of your 
+instance. The instance should report it as launching pretty quickly. You can watch 
+from `EC2 Dashboard`.  Wait until the state is given with a green circle as `running` and
+it indicates the initialization is complete.
 
-7. Find the public IP address of your instance on the Instances section of the EC2 dashboard. In the table of instances, IP will be listed under a column with the name `IPv4 Public IP`. This is the public address of the virtual machine you just created. Your user id on this machine will be `ubuntu`. Note: this IP address will change each time the instance is started.
+7. If the public IP is automatically assigned, the address will change after every 
+launch. We would like to assign the same public IP address to our instance every time 
+it is launched. So we will create an Elastic IP address: an IP address that can
+be reassigned to different EC2 instances. Go to `Network & Security` and click on 
+`Elastic IPs`. Click `Allocate New Address` and follow the steps to pull an IP 
+address. In the next step we will attach this address to your instance's network 
+interface `eth0`. The name `eth0` is the Linux term for the primary internet 
+connection to the computer.
 
-7. Optional step: configure an alias for the ec2 host. Doing this will make ssh and scp commands simpler to use.  Here let's assume the IP address is 127.0.0.1. Create or edit the file '~/.ssh/config'. To add an alias named $ec2$, add an entry to this file like:
+8. Next go to `Network Interfaces` under `Networking and Security`. If your instance
+launched, you should see the network interface for your instance listed here. This is
+the interface to which we will bind the Elastic IP address. With the desired network
+interface selected, choose `Associate Address` from `Actions` menu at the top of the 
+console. The first drop down should make your Elastic IP address available for 
+association with your instance's network interface. The `resassociate` check box 
+allows for this assignment to override any previous assignments (because the Elastic 
+IP can only associate to one network interface at a time)
+
+9. Optionally, on your local computer, we will configure an alias for the ec2 instance. 
+Doing this will make it much easier to connect to your instance. Say that your instance's 
+public IP address (the Elastic IP address you assigned to your intance's network interface) 
+is 19.20.21.22. Also, assume that your public key file is `ec2yale.pem`. In the `~/.ssh/config` 
+file, add an entry that looks like this (using a plain text editor such as vim).
 
 ```{r eval=FALSE}
 Host ec2
-    Hostname 127.0.0.1
-    IdentityFile ~/.ssh/jaykey.pem
+    Hostname 19.20.21.22
+    IdentityFile ~/.ssh/ec2yale.pem
     User ubuntu
 ```
 
-8. The instance should report it as launching pretty quickly.
-You can watch from `EC2 Dashboard`.  Wait until the
-state is given with a green circle as `running` and
-it indicates the initialization is complete.
-
-9. Log into the instance using ssh (secure shell) command.
-On your local machine (Mac OS X or Linux),
-ensure that your private key file `jaykey.pem` into the hidden ssh folder `~/.ssh/`. If you lost the key file, you will need to terminate the instance and start over. The private key file permission must give access to your user id only. Private key file permissions should be set to 400 (user execute, hidden to all others). To ensure this configuration, execute: `chmod 400 jaykey.pem`. The two trailing zeros in `400` signify that the key is not accessible to the group or the world. Using the IP address of the instance, user `ubuntu`, and private key file `jaykey.pem`, execute the command:
+10. To connect to your instance, you'll use a command line interface. 
+Log into the instance using the `ssh` command (secure shell). On your local machine 
+(Mac OS X or Linux), ensure that your key file `ec2yale.pem` is in the `~/.ssh/` 
+directory. If you lost the key file, you will need to terminate the instance and 
+start over. The key file permission must give access to your user only. Key file 
+permissions should be set to 400 (user execute, hidden to all others). To ensure 
+this configuration, execute: `chmod 400 ec2yale.pem`. The two trailing zeros in `400` 
+signify that the key is not accessible to the group or the world. If you did not set up
+the hose alias described in the previous step, the log in ssh command will look like:
 
 ```{r eval=FALSE}
-ssh -i ~/.ssh/jaykey.pem ubuntu@54.164.61.92
+ssh -i ~/.ssh/ec2yale.pem ubuntu@19.20.21.22
 ```
 
 If you've set up the ssh config file specifying alias name `ec2`, the command will be:
@@ -90,7 +123,7 @@ If you've set up the ssh config file specifying alias name `ec2`, the command wi
 ssh ec2
 ```
 
-Your OS may ask you if you are sure you want to connect to the remote machine at hte IP address specified. To allow this, type `yes`.
+You may be asked if you are sure you want to connect to the remote machine at hte IP address specified. To allow this, type `yes`.
 
 Windows?  You'll need a Windows SSH/SFTP client.  Check on
 [Yale's software page (link)](http://software.yale.edu/).  You'll need to
@@ -98,7 +131,7 @@ set it up to use this same keyfile.  I've never tested this, so if
 it doesn't work or of you discover something that should be added
 to this document, please let me know.
 
-10. Voila!  We're in.
+11. Voila!  We're in.
 
 
 ## A little about Linux
@@ -137,6 +170,10 @@ that you hit `return` at some point.
 To do this customization, SSH into the instance, and pick up
 the shell script (if you want to run my version without modification).
 Otherwise, edit `InstallR.sh` to use your own R scripts (at your own risk).
+Some possible edits would be the flags at the beginning of the file that
+say whether or not to install *extras* and *mysql*. The extras include
+shiny server (web hosting and data visualization) and foreach (parallel 
+computing). The mysql option will allow you to setup a database server.
 
     instance-prompt$ sudo su
     instance-prompt$ wget http://www.stat.yale.edu/~jay/EC2/InstallR.sh
@@ -201,8 +238,11 @@ Create a 200 GB standard volume. Be sure that the volume resides in the same
 
 5. Install stuff (InstallR.sh) as explained above.
 
-6. Deal with SSH keys.  To do this, do __not__ be root!  You are user `ubuntu`.  Just hit
-`return` when asked any question about a passphrase.
+6. Deal with SSH keys.  To do this, do __not__ be logged in as root! 
+The command `sudo su` logs you in as root user. Files created while 
+logged in as root user will not have the correct file permissions. You 
+are user `ubuntu`.  Just hit `return` when asked any question about a 
+passphrase.
 > su ubuntu  
 > cd  
 > ssh-keygen -t dsa  
