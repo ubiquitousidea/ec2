@@ -29,7 +29,7 @@
 # xenail, below, is for Ubuntu 16.04; LTS
 debsource='deb http://cran.case.edu/bin/linux/ubuntu xenial/'
 #fastrweb='/usr/local/lib/R/site-library/FastRWeb'
-doextras=1           # 0 if you don't want apache, LaTeX, Rserve/FastRWeb, shiny
+doextras=0           # 0 if you don't want apache, LaTeX, Rserve/FastRWeb, shiny
 domysql=0            # indicate mysql installation
 ## Choose the R version here:
 
@@ -37,7 +37,8 @@ domysql=0            # indicate mysql installation
 #rversion='3.0.1-1precise0precise2'
 #rversion='3.1.1-1trusty0_all
 #rversion='3.2.5-1trusty0'
-rversion='3.3.2-1xenial0'
+#rversion='3.3.2-1xenial0'
+rversion='3.4.4-1xenial0'
 # Get this and modify by hand for further package customization:
 wget http://www.stat.yale.edu/~jay/EC2/InstallPackages.R
 
