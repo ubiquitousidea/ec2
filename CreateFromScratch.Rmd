@@ -111,7 +111,7 @@ start over. The key file permission must give access to your user only. Key file
 permissions should be set to 400 (user execute, hidden to all others). To ensure 
 this configuration, execute: `chmod 400 ec2yale.pem`. The two trailing zeros in `400` 
 signify that the key is not accessible to the group or the world. If you did not set up
-the hose alias described in the previous step, the log in ssh command will look like:
+the host alias described in the previous step, the log in ssh command will look like:
 
 ```{r eval=FALSE}
 ssh -i ~/.ssh/ec2yale.pem ubuntu@19.20.21.22
